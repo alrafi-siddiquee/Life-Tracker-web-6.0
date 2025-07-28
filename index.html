@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Life Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --primary: #4a6fa5; --secondary: #166088; --accent: #4fc3a1;
+  --danger: #d64045; --light: #f8f9fa; --dark: #343a40;
+  --morning: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  --afternoon: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+  --evening: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --night: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {font-family:"Poppins",sans-serif;line-height:1.6;background:var(--morning);min-height:100vh;transition:background 0.4s;color:var(--dark);margin:0;}
+h1,h2,h3 { font-weight:600;color:var(--secondary);margin-bottom:.6rem;}
+button { cursor:pointer;}
+header {background:rgba(52,58,64,.9);color:#fff;text-align:center;padding:2.4rem 1rem 1rem;position:relative;user-select:none;}
+.heartbeat {font-size:2.2rem;position:absolute;left:16px;top:18px;animation:beat 1s infinite alternate;}@keyframes beat{to{transform:scale(1.15);}}
+.subtitle {color:var(--accent);margin-top:0.3rem;font-weight:400;font-size:1.05rem;}
+.time-showcase{margin-top:0.8rem;color:#ffeb3b;letter-spacing:0.12em;font-size:1rem;font-weight:600;}
+.container{max-width:700px;margin:2.4rem auto;background:rgba(255,255,255,0.96);padding:1.5rem;border-radius:12px;box-shadow:0 2px 18px #afbdd580;}
+.form-group{margin-bottom:1.2rem;}
+label{display:block;font-weight:600;margin-bottom:0.3rem;color:var(--secondary);}
+input,select{width:100%;padding:0.6rem;border:1px solid #b1b1b1;border-radius:6px;font-size:1rem;background:var(--light);transition:border-color 0.2s;}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 5px var(--accent);background:#fff;}
+button,.nav-button{background:var(--primary);color:#fff;font-weight:600;border:none;border-radius:8px;font-size:1rem;padding:0.68rem 1.35rem;margin:0.22rem 0.4rem 0.22rem 0;transition:background 0.2s,color 0.2s;user-select:none;}
+button:hover,.nav-button:hover{background:var(--secondary);}
+.nav-buttons{text-align:center;margin-bottom:1.3rem;user-select:none;}
+.nav-button{display:inline-block;}
+#reset-btn{background:var(--danger);color:white;font-weight:700;border-radius:8px;padding:0.68rem 1.35rem;border:none;margin-left:1rem;transition:background 0.3s;user-select:none;}
+#reset-btn:hover{background:#a72f33;}
+.dashboard-section{display:none;}
+.dashboard-section.active{display:block;}
+.quote-marquee{background:#f6f9fa;color:#455a64;font-style:italic;font-size:0.95rem;padding:0.6rem 1rem;margin-bottom:1.6rem;border-radius:8px;overflow:hidden;border-left:6px solid var(--accent);user-select:none;}
+.marquee-content{display:inline-block;white-space:nowrap;min-width:100%;animation:marquee 34s linear infinite;}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-80%);}}
+.visual-countdown{display:flex;justify-content:center;margin:1.3rem 0;}
+.countdown-circle{width:120px;height:120px;border-radius:50%;background:conic-gradient(var(--accent) 0%,var(--secondary) 0%);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 15px #4fc3a145;user-select:none;transition:background 0.6s;}
+.countdown-inner{background:#fff;width:90px;height:90px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 1px 8px #afbdd570;user-select:none;}
+.countdown-percent{font-size:1.3rem;font-weight:700;color:var(--primary);user-select:none;}
+.countdown-label{font-size:0.9rem;color:#666;margin-top:0.25rem;user-select:none;}
+.stats-container{display:flex;flex-wrap:wrap;gap:1.3rem;justify-content:space-between;}
+.stat-card{background:#f1f6fa;border-radius:9px;flex:1 1 135px;padding:1rem 1.1rem;box-shadow:0 1px 4px #acd0ea45;margin-bottom:1rem;}
+.stat-card h3{font-size:1.06rem;margin-bottom:0.65rem;}
+.stat-value{font-size:1.4rem;font-weight:700;color:var(--secondary);}
+.highlight{background:#e2faee;color:#158665;border-radius:6px;padding:0.9rem 1.1rem;text-align:center;font-weight:600;font-size:1.1rem;margin:1rem 0;user-select:none;}
+.progress-container{background:#ececec;height:11px;border-radius:7px;margin-top:0.25rem;width:100%;}
+.progress-bar{background:var(--accent);height:100%;border-radius:7px;width:0;transition:width 0.6s;}
+.highlight-years{font-size:1.4rem;font-weight:700;color:var(--accent);display:block;margin-bottom:0.3rem;}
+
+/* Sleep Tracker */
+#sleep-tracker .time-tracker-grid{display:flex;flex-wrap:wrap;gap:1rem;}
+#sleep-tracker .time-tracker-grid > div{flex:1 1 200px;}
+#sleep-tracker .time-allocation{margin-top:1rem;}
+#sleep-tracker .time-category{display:flex;align-items:center;margin-bottom:0.5rem;}
+#sleep-tracker .time-color{width:16px;height:16px;border-radius:50%;display:inline-block;margin-right:10px;}
+#sleep-tracker .time-label{min-width:110px;}
+#sleep-tracker .time-bar{flex:1;background:#ececec;border-radius:7px;height:12px;margin:0 10px;position:relative;}
+#sleep-tracker .time-fill{height:100%;border-radius:7px;width:0;transition:width 0.6s;}
+/* Daily Routine */
+.daily-activities {width: 100%; border-collapse: collapse; margin-top: 1rem;}
+.daily-activities th, .daily-activities td {border: 1px solid #ccc; padding: 0.5rem 0.75rem; text-align: left;}
+.daily-activities th {background-color: var(--accent); color: white;}
+.status-btn {cursor: pointer; border:none; background: none; font-size:1.1rem;}
+.status-btn.done {color: green;}
+.status-btn.missed {color: red;}
+.delete-btn {background: var(--danger);border:none;border-radius:4px;color:#fff;padding:0.2rem 0.5rem;cursor:pointer;font-weight:700;}
+.delete-btn:hover {background: #a72f33;}
+/* Life Goals */
+.goals-list{list-style:none;padding-left:0;margin-top:1rem;}
+.goal-item{background:#f5fcff;border:1.5px solid #ececec;border-radius:7px;padding:10px 15px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.goal-item.completed{background:#d4f5e2;color:#2b7a4b;text-decoration:line-through;}
+.goal-info{flex:1 1 80%;}
+.goal-title{font-weight:600;font-size:1.05rem;color:var(--primary);}
+.goal-deadline{font-size:0.9rem;color:#666;}
+.goal-days-left{font-weight:600;padding:0.2rem 0.6rem;border-radius:7px;font-size:0.9rem;}
+.goal-days-left.overdue{background:#ffeaea;color:var(--danger);}
+.goal-actions button{background:none;border:none;font-size:1.2rem;color:var(--primary);margin-left:10px;cursor:pointer;transition:color 0.2s;}
+.goal-actions button:hover{color:var(--danger);}
+/* Pomodoro */
+.pomodoro-container{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.pomodoro-timer{font-size:2.8rem;font-weight:700;width:130px;text-align:center;padding:12px 0;background:#fffbe5;color:var(--danger);border-radius:10px;box-shadow:0 1px 8px #ecd79c40;}
+.pomodoro-controls button{font-size:1rem;margin-right:0.8rem;}
+.work-mode{background:var(--accent) !important;}
+.break-mode{background:#e2c044 !important;color:#444 !important;}
+.pomodoro-cycles{font-size:1.1rem;color:var(--secondary);}
+
+/* Money Management */
+#money-management table {width: 100%; border-collapse: collapse;}
+#money-management th, #money-management td {border: 1px solid #ddd; padding: 6px;}
+#money-management th {background: #f8f9fa;}
+
+/* Word Tracker styles */
+.words-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.words-table th, .words-table td {
+  border: 1px solid #ccc;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+.words-table th {
+  background-color: var(--accent);
+  color: white;
+}
+.delete-word-btn {
+  background: var(--danger);
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.delete-word-btn:hover {
+  background: #a72f33;
+}
+@media (max-width:770px){
+  .container{max-width:95vw;margin:1.5rem auto;padding:1rem;}
+  .stats-container{flex-direction:column;gap:1rem;}
+  .visual-countdown{margin:1rem 0 1.5rem;}
+  #sleep-tracker .time-tracker-grid{flex-direction:column;gap:1rem;}
+  #pomodoro .pomodoro-container{flex-direction:column;gap:1rem;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="heartbeat" aria-hidden="true">❤️</div>
+  <h1>Life Tracker</h1>
+  <p class="subtitle">Mindful Living Through Time Awareness</p>
+  <div id="current-time" class="time-showcase" aria-live="polite" aria-atomic="true">Current Time: Loading…</div>
+</header>
+
+<main class="container" role="main" aria-label="Life Tracker Application">
+  <!-- User Input Section -->
+  <section id="user-input-section" aria-label="User details input">
+    <h2>Your Life Journey Begins Here</h2>
+    <form id="life-form" novalidate>
+      <div class="form-group">
+        <label for="full-name">Full Name</label>
+        <input id="full-name" type="text" autocomplete="name" required placeholder="Enter your full name" aria-required="true" />
+      </div>
+      <div class="form-group">
+        <label for="dob">Date of Birth</label>
+        <input id="dob" type="date" required aria-required="true" />
+      </div>
+      <div class="form-group">
+        <label for="life-expectancy">Estimated Life Expectancy (years)</label>
+        <input id="life-expectancy" type="number" value="70" min="50" max="120" required aria-required="true" />
+      </div>
+      <button type="submit" aria-label="Begin tracking my life">Begin Tracking My Life</button>
+    </form>
+  </section>
+
+  <!-- Dashboard Section -->
+  <section id="dashboard" style="display: none;" aria-label="Dashboard">
+    <div class="quote-marquee" aria-live="polite">
+      <div class="marquee-content" aria-hidden="true">
+        “Indeed, with hardship comes ease.” — Quran 94:6 ||
+        "You're the pilot of your time plane" – fly wisely ||
+        "Take advantage of five before five..." – Youth, Health, Wealth, Free Time, Life " --Hadith ||
+        “Life is what happens when you're busy making other plans.” — John Lennon ||
+        “Whoever does righteousness , We will surely cause him to live a good life.” — Quran 16:97 ||
+        “The way to get started is to quit talking and begin doing.” — Walt Disney ||
+        “And We will surely test you … but give good tidings to the patient.” — Quran 2:155 ||
+      </div>
+    </div>
+    <nav class="nav-buttons" aria-label="Dashboard sections navigation" role="tablist">
+      <button class="nav-button" data-section="life-progress" aria-controls="life-progress" aria-selected="true" role="tab" tabindex="0" type="button">Life Progress</button>
+      <button class="nav-button" data-section="sleep-tracker" aria-controls="sleep-tracker" aria-selected="false" role="tab" tabindex="-1" type="button">Sleep Tracker</button>
+      <button class="nav-button" data-section="daily-routine" aria-controls="daily-routine" aria-selected="false" role="tab" tabindex="-1" type="button">Daily Routine</button>
+      <button class="nav-button" data-section="life-goals" aria-controls="life-goals" aria-selected="false" role="tab" tabindex="-1" type="button">Life Goals</button>
+      <button class="nav-button" data-section="pomodoro" aria-controls="pomodoro" aria-selected="false" role="tab" tabindex="-1" type="button">Pomodoro Timer</button>
+      <button class="nav-button" data-section="money-management" aria-controls="money-management" aria-selected="false" role="tab" tabindex="-1" type="button">Money Management</button>
+      <button class="nav-button" data-section="word-tracker" aria-controls="word-tracker" aria-selected="false" role="tab" tabindex="-1" type="button">Word Tracker</button>
+      <button id="reset-btn" type="button" aria-label="Reset all saved data">Reset All Data</button>
+    </nav>
+
+    <!-- Life Progress Section -->
+    <section id="life-progress" class="dashboard-section active" role="tabpanel" tabindex="0">
+      <h2>Your Life Progress</h2>
+      <div class="visual-countdown" aria-hidden="true">
+        <div id="countdown-circle" class="countdown-circle" aria-label="Life completion circle progress" role="img" aria-live="off">
+          <div class="countdown-inner">
+            <div id="countdown-percent" class="countdown-percent">0%</div>
+            <div class="countdown-label">Life Completed</div>
+          </div>
+        </div>
+      </div>
+      <div class="stats-container">
+        <div class="stat-card" aria-label="Time passed">
+          <h3>Time Passed</h3>
+          <div id="years-passed" class="stat-value">--</div>
+          <p>Years</p>
+          <div id="months-passed" class="stat-value">--</div>
+          <p>Months</p>
+          <div id="weeks-passed" class="stat-value">--</div>
+          <p>Weeks</p>
+          <div id="days-passed" class="stat-value">--</div>
+          <p>Days</p>
+          <div id="seconds-passed" class="seconds-counter">-- seconds</div>
+        </div>
+        <div class="stat-card" aria-label="Time remaining">
+          <h3>Time Remaining</h3>
+          <div id="years-remaining" class="stat-value">--</div>
+          <p>Years</p>
+          <div id="months-remaining" class="stat-value">--</div>
+          <p>Months</p>
+          <div id="weeks-remaining" class="stat-value">--</div>
+          <p>Weeks</p>
+          <div id="days-remaining" class="stat-value">--</div>
+          <p>Days</p>
+          <div id="seconds-remaining" class="seconds-counter">-- seconds</div>
+        </div>
+        <div class="stat-card" aria-label="Life completion percentage">
+          <h3>Life Completion</h3>
+          <div id="life-percentage" class="stat-value">--%</div>
+          <div class="progress-container"><div id="life-progress-bar" class="progress-bar"></div></div>
+          <p>of your estimated lifespan</p>
+        </div>
+      </div>
+      <div id="live-countdown" class="highlight" aria-live="polite" aria-atomic="true">Calculating your life countdown…</div>
+    </section>
+
+    <!-- Sleep Tracker Section -->
+    <section id="sleep-tracker" class="dashboard-section" role="tabpanel" tabindex="0" hidden>
+      <h2>Sleep Tracker</h2>
+      <div class="time-tracker-grid">
+        <div>
+          <div class="form-group">
+            <label for="wake-up-time">Wake-up Time <span style="font-weight:400;font-size:90%">(hh:mm AM/PM)</span></label>
+            <input type="text" id="wake-up-time" required placeholder="e.g. 07:30 AM" autocomplete="off"/>
+          </div>
+          <div class="form-group">
+            <label for="sleep-time">Sleep Time <span style="font-weight:400;font-size:90%">(hh:mm AM/PM)</span></label>
+            <input type="text" id="sleep-time" required placeholder="e.g. 11:00 PM" autocomplete="off"/>
+          </div>
+          <button id="calculate-sleep-btn">Calculate My Sleep</button>
+        </div>
+        <div>
+          <div class="stat-card">
+            <h3>Sleep Duration</h3>
+            <div id="sleep-duration" class="stat-value">--</div>
+            <p>hours</p>
+          </div>
+          <div class="stat-card">
+            <h3>Awake Time Left</h3>
+            <div id="awake-hours" class="stat-value">--</div>
+            <p>hours</p>
+          </div>
+          <div id="sleep-countdown" class="highlight" aria-live="polite" aria-atomic="true">
+            Calculate your sleep to see time remaining
+          </div>
+        </div>
+      </div>
+      <div class="time-allocation" aria-live="polite" aria-atomic="true">
+        <div class="time-category">
+          <span class="time-color" style="background: var(--primary)"></span>
+          <span class="time-label">Sleep Time</span>
+          <div class="time-bar" aria-hidden="true"><div id="sleep-fill" class="time-fill" style="background: var(--primary)"></div></div>
+        </div>
+        <div class="time-category">
+          <span class="time-color" style="background: var(--accent)"></span>
+          <span class="time-label">Awake Time Left</span>
+          <div class="time-bar" aria-hidden="true"><div id="awake-fill" class="time-fill" style="background: var(--accent)"></div></div>
+        </div>
+        <div class="time-category">
+          <span class="time-color" style="background: var(--danger)"></span>
+          <span class="time-label">Time Passed Since Wake</span>
+          <div class="time-bar" aria-hidden="true"><div id="passed-fill" class="time-fill" style="background: var(--danger)"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Daily Routine Section -->
+    <section id="daily-routine" class="dashboard-section" role="tabpanel" tabindex="0" hidden>
+      <h2>Daily Routine</h2>
+      <form id="daily-routine-form" aria-label="Add daily routine activity">
+        <div>
+          <label for="activity-name-input">Activity Name</label>
+          <input type="text" id="activity-name-input" placeholder="e.g. Morning Exercise" required autocomplete="off" />
+        </div>
+        <div>
+          <label for="start-time-input">Start Time</label>
+          <input type="time" id="start-time-input" required />
+        </div>
+        <div>
+          <label for="end-time-input">End Time</label>
+          <input type="time" id="end-time-input" required />
+        </div>
+        <div>
+          <label for="status-input">Status</label>
+          <select id="status-input" aria-label="Select initial status">
+            <option value="pending" selected>Pending</option>
+            <option value="done">Done ✅</option>
+            <option value="missed">Missed ❌</option>
+          </select>
+        </div>
+        <div>
+          <button class="add-activity" type="submit" aria-label="Add activity to daily routine">Add Activity</button>
+        </div>
+      </form>
+      <table class="daily-activities" aria-label="Daily routine activities list">
+        <thead>
+          <tr>
+            <th>Activity</th><th>Start</th><th>End</th><th>Duration (min)</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="daily-activities-tbody">
+        </tbody>
+      </table>
+      <p class="highlight" id="daily-routine-info" aria-live="polite" aria-atomic="true"></p>
+    </section>
+
+    <!-- Life Goals Section -->
+    <section id="life-goals" class="dashboard-section" role="tabpanel" tabindex="0" hidden>
+      <h2>Your Life Goals</h2>
+      <div class="form-group">
+        <label for="goal-title">Goal Title</label>
+        <input id="goal-title" type="text" placeholder="What do you want to achieve?" />
+      </div>
+      <div class="form-group">
+        <label for="goal-deadline">Target Finish Date & Time</label>
+        <input type="datetime-local" id="goal-deadline" />
+      </div>
+      <button id="add-goal-btn">Add Goal</button>
+      <ul id="goals-list" class="goals-list"></ul>
+    </section>
+
+    <!-- Pomodoro Timer Section -->
+    <section id="pomodoro" class="dashboard-section" role="tabpanel" tabindex="0" hidden>
+      <h2>Pomodoro Productivity Timer</h2>
+      <div class="pomodoro-container">
+        <div id="pomodoro-timer" class="pomodoro-timer">25:00</div>
+        <div class="pomodoro-controls">
+          <button id="start-pomodoro-btn">Start Work Session</button>
+          <button id="start-break-btn">Start Break</button>
+          <button id="reset-pomodoro-btn">Reset</button>
+        </div>
+        <div id="pomodoro-cycles" class="pomodoro-cycles">Completed Cycles: 0</div>
+      </div>
+      <div style="margin-top:1.8rem;">
+        <h3>How to Use the Pomodoro Technique</h3>
+        <ol>
+          <li>Work for 25 minutes (one Pomodoro)</li>
+          <li>Take a 5-minute break</li>
+          <li>After 4 Pomodoros, take a longer 15-30 minute break</li>
+          <li>Repeat to maximize productivity</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Money Management Section -->
+    <section id="money-management" class="dashboard-section" role="tabpanel" tabindex="0" hidden>
+      <h2>Money Management</h2>
+      <div style="margin-bottom:1.2rem;">
+        <label for="money-start">Monthly Starting Balance:</label>
+        <input type="number" id="money-start" min="0" placeholder="e.g. 10000" style="width:120px;margin-right:1rem;">
+        <button id="set-money-start">Set / Change Start Balance</button>
+        <span id="money-start-info" style="margin-left:1.2rem;color:#158665;"></span>
+      </div>
+      <div style="margin-bottom:1.2rem;">
+        <label for="money-date">Date:</label>
+        <input type="date" id="money-date" style="width:140px;margin-right:1rem;">
+        <label for="money-spent">Spent Today:</label>
+        <input type="number" id="money-spent" min="0" placeholder="Amount" style="width:90px;margin-right:0.8rem;">
+        <button id="add-money-entry">Add</button>
+      </div>
+      <div>
+        <h3 style="margin-top:1.1rem;">Your Money This Month</h3>
+        <table style="width:100%;max-width:600px;margin-bottom:1.3rem; border-collapse: collapse;">
+          <thead>
+            <tr style="background:#f8f9fa;">
+              <th style="text-align:left;border:1px solid #ddd;padding:6px;">Date</th>
+              <th style="text-align:right;border:1px solid #ddd;padding:6px;">Spent</th>
+            </tr>
+          </thead>
+          <tbody id="money-entries"></tbody>
+          <tfoot>
+            <tr style="background:#e2faee;">
+              <th style="text-align:left;border:1px solid #ddd;padding:6px;">Total Spent</th>
+              <th id="money-total-spent" style="text-align:right;border:1px solid #ddd;padding:6px;"></th>
+            </tr>
+            <tr style="background:#e2faee;">
+              <th style="text-align:left;border:1px solid #ddd;padding:6px;">Money Left</th>
+              <th id="money-total-left" style="text-align:right;border:1px solid #ddd;padding:6px;"></th>
+            </tr>
+          </tfoot>
+        </table>
+        <button id="reset-money-month" style="background:#d64045;">Reset Month</button>
+      </div>
+    </section>
+
+    <!-- Word Tracker Section (New Enhanced) -->
+    <section id="word-tracker" class="dashboard-section" role="tabpanel" tabindex="0" hidden>
+      <h2>Word Tracker</h2>
+      <form id="word-form" style="margin-bottom:1rem" aria-label="Add a new word">
+        <div>
+          <label for="word-input">Word</label>
+          <input type="text" id="word-input" required placeholder="Enter a word to save" autocomplete="off" />
+        </div>
+        <div>
+          <label for="meaning-input">Meaning</label>
+          <input type="text" id="meaning-input" required placeholder="Enter the meaning" autocomplete="off" />
+        </div>
+        <div>
+          <label for="sentence-input">Sentence</label>
+          <input type="text" id="sentence-input" placeholder="A sentence using the word" autocomplete="off" />
+        </div>
+        <div>
+          <button type="submit">Add Word</button>
+        </div>
+      </form>
+      <table class="words-table" aria-label="Vocabulary words list">
+        <thead>
+          <tr>
+            <th>Word</th>
+            <th>Meaning</th>
+            <th>Sentence</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="words-tbody"></tbody>
+      </table>
+    </section>
+  </section>
+</main>
+
+<footer style="width:100%;text-align:center;background:#fff;padding:20px 0;margin-top:40px;box-shadow:0 -1px 8px rgba(0,0,0,0.05);font-size:12px;">
+  <p>Life Tracker</p><p>© 2025 All Rights Reserved</p><p>Planned by Alrafi Siddiquee Jim</p>
+</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // ---- CORE UTIL/STATE section keys ----
+  const LS_KEYS = {
+    user: "lt_user",
+    goals: "lt_goals",
+    sleep: "lt_sleep",
+    pomodoro: "lt_pomodoro",
+    money: "lt_money_management",
+    routine: "lt_daily_routine",
+    words: "lt_words" // added for word tracker
+  };
+
+  // Save/load helpers
+  const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+  const load = (key) => {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : null;
+  };
+
+  // ---- NAVIGATION/UI/STATE ----
+  const form = document.getElementById("life-form");
+  const inputSection = document.getElementById("user-input-section");
+  const dashboard = document.getElementById("dashboard");
+  const navButtons = Array.from(document.querySelectorAll(".nav-button")).filter(btn => btn.id !== "reset-btn");
+  const dashboardSections = Array.from(document.querySelectorAll(".dashboard-section"));
+  const resetBtn = document.getElementById("reset-btn");
+
+  function activateSection(sectionId, button) {
+    dashboardSections.forEach(sec => {
+      if (sec.id === sectionId) {
+        sec.classList.add("active");
+        sec.removeAttribute("hidden");
+        sec.setAttribute("tabindex", "0");
+      } else {
+        sec.classList.remove("active");
+        sec.setAttribute("hidden", "");
+        sec.setAttribute("tabindex", "-1");
+      }
+    });
+    navButtons.forEach(btn => {
+      if (btn === button) {
+        btn.setAttribute("aria-selected", "true");
+        btn.setAttribute("tabindex", "0");
+        btn.focus();
+      } else {
+        btn.setAttribute("aria-selected", "false");
+        btn.setAttribute("tabindex", "-1");
+      }
+    });
+    if (sectionId === 'money-management') renderMoneyManagement();
+    if (sectionId === 'daily-routine') renderDailyRoutineTable();
+  }
+
+  navButtons.forEach((btn) => {
+    btn.addEventListener("click", () => activateSection(btn.dataset.section, btn));
+  });
+
+  // ---- CLOCK and BACKGROUND COLOR ----
+  function updateClock() {
+    const now = new Date();
+    let h = now.getHours(), m = now.getMinutes().toString().padStart(2, "0"), s = now.getSeconds().toString().padStart(2, "0");
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    document.getElementById("current-time").textContent = `Current Time: ${h}:${m}:${s} ${ampm}`;
+  }
+  function updateBackground() {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 12) document.body.style.background = "var(--morning)";
+    else if (h >= 12 && h < 17) document.body.style.background = "var(--afternoon)";
+    else if (h >= 17 && h < 21) document.body.style.background = "var(--evening)";
+    else document.body.style.background = "var(--night)";
+  }
+  updateClock(); setInterval(updateClock, 1000);
+  updateBackground(); setInterval(updateBackground, 60000);
+
+  // ---- LIFE PROGRESS ----
+  let lifeInterval = null;
+  function startLifeStats(user) {
+    const dobDate = new Date(user.dob);
+    const lifeEndDate = new Date(dobDate);
+    lifeEndDate.setFullYear(dobDate.getFullYear() + user.lifeExp);
+    if (lifeInterval) clearInterval(lifeInterval);
+    lifeInterval = setInterval(() => {
+      const now = new Date(),
+        ageMs = now - dobDate,
+        remainingMs = lifeEndDate - now,
+        totalMs = lifeEndDate - dobDate,
+        safeRem = remainingMs > 0 ? remainingMs : 0,
+        msYear = 1000 * 60 * 60 * 24 * 365.25,
+        msMonth = msYear / 12,
+        msWeek = 1000 * 60 * 60 * 24 * 7,
+        msDay = 1000 * 60 * 60 * 24,
+        msHour = 1000 * 60 * 60,
+        msMinute = 1000 * 60,
+        msSecond = 1000,
+        yearsP = Math.floor(ageMs / msYear),
+        monthsP = Math.floor(ageMs / msMonth),
+        weeksP = Math.floor(ageMs / msWeek),
+        daysP = Math.floor(ageMs / msDay),
+        secondsP = Math.floor(ageMs / msSecond),
+        yearsRem = Math.floor(safeRem / msYear),
+        monthsRem = Math.floor((safeRem / msMonth) % 12),
+        weeksRem = Math.floor((safeRem / msWeek) % 52),
+        daysRem = Math.floor((safeRem / msDay) % 365),
+        hoursRem = Math.floor((safeRem % msDay) / msHour),
+        minutesRem = Math.floor((safeRem % msHour) / msMinute),
+        secondsRem = Math.floor((safeRem % msMinute) / msSecond);
+      let pct = Math.min(100, Math.max(0, (ageMs / totalMs) * 100)).toFixed(2);
+      document.getElementById("years-passed").textContent = yearsP;
+      document.getElementById("months-passed").textContent = monthsP;
+      document.getElementById("weeks-passed").textContent = weeksP;
+      document.getElementById("days-passed").textContent = daysP;
+      document.getElementById("seconds-passed").textContent = `${secondsP} seconds`;
+      document.getElementById("years-remaining").textContent = yearsRem;
+      document.getElementById("months-remaining").textContent = monthsRem;
+      document.getElementById("weeks-remaining").textContent = weeksRem;
+      document.getElementById("days-remaining").textContent = daysRem;
+      document.getElementById("seconds-remaining").textContent = `${secondsRem} seconds`;
+      document.getElementById("life-percentage").textContent = `${pct}%`;
+
+      const progressBar = document.getElementById("life-progress-bar"), circle = document.getElementById("countdown-circle"),
+        pctText = document.getElementById("countdown-percent");
+      progressBar.style.width = `${pct}%`;
+      circle.style.background = `conic-gradient(var(--accent) ${pct}%,var(--secondary) ${pct}%)`;
+      pctText.textContent = `${pct}%`;
+
+      const parts = [];
+      if (yearsRem > 0) parts.push(`<span class="highlight-years">${yearsRem} year${yearsRem !== 1 ? 's' : ''}</span>`);
+      if (monthsRem > 0) parts.push(`${monthsRem} month${monthsRem !== 1 ? 's' : ''}`);
+      if (weeksRem > 0) parts.push(`${weeksRem} week${weeksRem !== 1 ? 's' : ''}`);
+      if (daysRem > 0) parts.push(`${daysRem} day${daysRem !== 1 ? 's' : ''}`);
+      if (hoursRem > 0) parts.push(`${hoursRem} hour${hoursRem !== 1 ? 's' : ''}`);
+      if (minutesRem > 0) parts.push(`${minutesRem} minute${minutesRem !== 1 ? 's' : ''}`);
+      parts.push(`${secondsRem} second${secondsRem !== 1 ? 's' : ''}`);
+
+      document.getElementById("live-countdown").innerHTML =
+        `<p>Time remaining:<br>${parts.join(',&nbsp;<br>')}</p><p>Make them count!</p>`;
+    }, 1000);
+  }
+
+  // ---- SLEEP TRACKER (12-hour parsing, robust) ----
+
+  const sleepBtn = document.getElementById('calculate-sleep-btn');
+  let sleepInterval = null;
+
+  function parse12HourTimeToDate(timeStr) {
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+    if (!match) return null;
+    let hour = parseInt(match[1], 10);
+    const min = parseInt(match[2], 10);
+    const ampm = match[3].toUpperCase();
+    if (hour < 1 || hour > 12 || min < 0 || min > 59) return null;
+    if (ampm === "PM" && hour !== 12) hour += 12;
+    if (ampm === "AM" && hour === 12) hour = 0;
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, min, 0, 0);
+  }
+
+  function updateSleepBars(sleepH, awakeH, passedH) {
+    const total = sleepH + awakeH + passedH;
+    if (total === 0) {
+      document.getElementById('sleep-fill').style.width = '0%';
+      document.getElementById('awake-fill').style.width = '0%';
+      document.getElementById('passed-fill').style.width = '0%';
+      return;
+    }
+    const spct = (sleepH / total) * 100;
+    const apct = (awakeH / total) * 100;
+    const ppct = (passedH / total) * 100;
+    document.getElementById('sleep-fill').style.width = (spct <= 100 ? spct : 100) + '%';
+    document.getElementById('awake-fill').style.width = (apct <= 100 ? apct : 100) + '%';
+    document.getElementById('passed-fill').style.width = (ppct <= 100 ? ppct : 100) + '%';
+  }
+
+  function updateSleepCountdown(nextSleepDate) {
+    if (sleepInterval) clearInterval(sleepInterval);
+    sleepInterval = setInterval(() => {
+      const now = new Date();
+      let diff = nextSleepDate - now;
+      if (diff < 0) diff = 0;
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('sleep-countdown').textContent =
+        `Time until sleep: ${h} hour(s), ${m} minute(s), ${s} second(s).`;
+    }, 1000);
+  }
+
+  if (sleepBtn) {
+    sleepBtn.addEventListener('click', () => {
+      const wakeRaw = document.getElementById('wake-up-time').value.trim();
+      const sleepRaw = document.getElementById('sleep-time').value.trim();
+
+      if (!wakeRaw || !sleepRaw) {
+        alert('Please enter both wake-up and sleep times (e.g. 07:30 AM, 11:00 PM)');
+        return;
+      }
+
+      const sleepDate = parse12HourTimeToDate(sleepRaw);
+      const wakeDate = parse12HourTimeToDate(wakeRaw);
+
+      if (!sleepDate || !wakeDate) {
+        alert('Enter times as hh:mm AM/PM. For example, 07:00 AM or 10:30 PM.');
+        return;
+      }
+
+      const now = new Date();
+
+      // Calculate sleep duration: from sleep time to next wake time
+      let adjustedWakeDate = new Date(wakeDate);
+      if (wakeDate <= sleepDate) adjustedWakeDate.setDate(adjustedWakeDate.getDate() + 1);
+      const sleepDurationMs = adjustedWakeDate - sleepDate;
+      const sleepH = +(sleepDurationMs / (1000 * 60 * 60)).toFixed(2);
+
+      // Calculate time left until next sleep time
+      let nextSleepDate = new Date(sleepDate);
+      if (nextSleepDate <= now) nextSleepDate.setDate(nextSleepDate.getDate() + 1);
+      let awakeMs = nextSleepDate - now;
+      if (awakeMs < 0) awakeMs = 0;
+      const awakeH = +(awakeMs / (1000 * 60 * 60)).toFixed(2);
+
+      // Time since last wake
+      let lastWakeDate = new Date(wakeDate);
+      if (lastWakeDate > now) lastWakeDate.setDate(lastWakeDate.getDate() - 1);
+      let passedMs = now - lastWakeDate;
+      if (passedMs < 0) passedMs = 0;
+      const passedH = +(passedMs / (1000 * 60 * 60)).toFixed(2);
+
+      document.getElementById('sleep-duration').textContent = sleepH.toFixed(2);
+      document.getElementById('awake-hours').textContent = awakeH.toFixed(2);
+
+      updateSleepBars(sleepH, awakeH, passedH);
+      updateSleepCountdown(nextSleepDate);
+
+      // Save sleep data
+      save(LS_KEYS.sleep, { wakeUp: wakeRaw, sleep: sleepRaw });
+    });
+
+    // Auto-load and calculate if there is saved data
+    const savedSleep = load(LS_KEYS.sleep);
+    if (savedSleep && savedSleep.wakeUp && savedSleep.sleep) {
+      document.getElementById('wake-up-time').value = savedSleep.wakeUp;
+      document.getElementById('sleep-time').value = savedSleep.sleep;
+      sleepBtn.click();
+    }
+  }
+
+  // ---- ROUTINE TABLE MANAGEMENT ----
+  const routineForm = document.getElementById('daily-routine-form');
+  const routineTableBody = document.getElementById('daily-activities-tbody');
+  const dailyRoutineInfo = document.getElementById('daily-routine-info');
+
+  function parseTimeToMinutes(timeStr) {
+    if (!timeStr) return null;
+    const parts = timeStr.split(':');
+    if (parts.length !== 2) return null;
+    const h = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+  }
+
+  function formatDurationMinutes(start, end) {
+    let sm = parseTimeToMinutes(start), em = parseTimeToMinutes(end);
+    if (sm === null || em === null) return 0;
+    if (em < sm) em += 24 * 60;
+    return em - sm;
+  }
+
+  function saveDailyRoutine(entries) {
+    save(LS_KEYS.routine, entries);
+  }
+  function loadDailyRoutine() {
+    return load(LS_KEYS.routine) || [];
+  }
+  function renderDailyRoutineTable() {
+    const routine = loadDailyRoutine();
+    routineTableBody.innerHTML = '';
+    if (routine.length === 0) {
+      routineTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#666;">No activities added yet.</td></tr>';
+      dailyRoutineInfo.textContent = '';
+      return;
+    }
+    let totalMinutes = 0, total = routine.length, completed = 0;
+    routine.forEach((act, idx) => {
+      const duration = formatDurationMinutes(act.start, act.end);
+      totalMinutes += duration;
+      if (act.status === 'done') completed++;
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-idx', idx);
+      tr.innerHTML = `
+        <td class="activity-name" title="${act.name}">${act.name}</td>
+        <td>${act.start}</td>
+        <td>${act.end}</td>
+        <td>${duration}</td>
+        <td>
+          <button class="status-btn ${act.status === 'done' ? 'done' : act.status === 'missed' ? 'missed' : ''}" aria-label="Change Status">${act.status === 'done' ? '✅' : act.status === 'missed' ? '❌' : '-'}</button>
+        </td>
+        <td>
+          <button class="delete-btn" aria-label="Delete Activity">✕</button>
+        </td>
+      `;
+      routineTableBody.appendChild(tr);
+    });
+    let percent = total ? ((completed / total) * 100).toFixed(1) : 0;
+    dailyRoutineInfo.textContent = `Total Planned Duration: ${totalMinutes} minutes (${(totalMinutes / 60).toFixed(2)} hours) | Daily Routine Completed: ${percent}%`;
+  }
+
+  routineForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById('activity-name-input');
+    const startInput = document.getElementById('start-time-input');
+    const endInput = document.getElementById('end-time-input');
+    const statusInput = document.getElementById('status-input');
+    const name = nameInput.value.trim(), start = startInput.value, end = endInput.value, status = statusInput.value;
+    if (!name) { alert('Please enter a valid activity name.'); return; }
+    if (!start) { alert('Please select a valid start time.'); return; }
+    if (!end) { alert('Please select a valid end time.'); return; }
+    const newActivity = { name, start, end, status };
+    const routine = loadDailyRoutine();
+    routine.push(newActivity);
+    saveDailyRoutine(routine);
+    renderDailyRoutineTable();
+    nameInput.value = ''; startInput.value = ''; endInput.value = ''; statusInput.value = 'pending';
+  });
+
+  routineTableBody.addEventListener('click', (e) => {
+    const btn = e.target, tr = btn.closest('tr');
+    if (!tr) return; 
+    const idx = Number(tr.getAttribute('data-idx'));
+    if (isNaN(idx)) return;
+    const routine = loadDailyRoutine();
+    if (btn.classList.contains('status-btn')) {
+      const currStatus = routine[idx].status;
+      const nextStatus = currStatus === 'pending' ? 'done' : currStatus === 'done' ? 'missed' : 'pending';
+      routine[idx].status = nextStatus;
+      saveDailyRoutine(routine);
+      renderDailyRoutineTable();
+    } else if (btn.classList.contains('delete-btn')) {
+      if (confirm(`Delete activity "${routine[idx].name}"?`)) {
+        routine.splice(idx, 1);
+        saveDailyRoutine(routine);
+        renderDailyRoutineTable();
+      }
+    }
+  });
+
+  // ---- LIFE GOALS ----
+  const goalsList = document.getElementById('goals-list');
+
+  function loadGoals() { return load(LS_KEYS.goals) || []; }
+  function saveGoals(goals) { save(LS_KEYS.goals, goals); }
+
+  function renderGoals(goals) {
+    goalsList.innerHTML = '';
+    goals.forEach((goal, idx) => {
+      const deadlineDate = new Date(goal.deadline), now = new Date();
+      const diffMs = deadlineDate - now;
+      const diffDays = diffMs > 0 ? Math.floor(diffMs / (1000 * 60 * 60 * 24)) : -Math.ceil(-diffMs / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      let timeLeftStr;
+      if (diffMs < 0) { timeLeftStr = `${Math.abs(diffDays)} day(s) overdue`; }
+      else { timeLeftStr = `${diffDays} day(s), ${diffHours} hour(s), ${diffMinutes} minute(s) left`; }
+      const li = document.createElement('li');
+      li.className = 'goal-item' + (goal.completed ? ' completed' : '');
+      li.innerHTML = `
+        <div class="goal-info">
+          <div class="goal-title">${goal.title}</div>
+          <div class="goal-deadline">Target: ${deadlineDate.toLocaleString()}</div>
+        </div>
+        <div class="goal-days-left ${diffDays < 0 ? 'overdue' : ''}">${timeLeftStr}</div>
+        <div class="goal-actions">
+          <button class="complete-btn" title="${goal.completed ? 'Undo Complete' : 'Mark Complete'}">${goal.completed ? '🔄' : '✓'}</button>
+          <button class="delete-btn" title="Delete Goal">✕</button>
+        </div>
+      `;
+      li.querySelector('.complete-btn').addEventListener('click', () => {
+        goal.completed = !goal.completed;
+        saveGoals(goals);
+        renderGoals(goals);
+      });
+      li.querySelector('.delete-btn').addEventListener('click', () => {
+        goals.splice(idx, 1);
+        saveGoals(goals);
+        renderGoals(goals);
+      });
+      goalsList.appendChild(li);
+    });
+  }
+
+  document.getElementById('add-goal-btn').addEventListener('click', () => {
+    const titleInput = document.getElementById('goal-title');
+    const deadlineInput = document.getElementById('goal-deadline');
+    const title = titleInput.value.trim(), deadline = deadlineInput.value;
+    if (!title || !deadline) { alert('Please fill in both goal title and deadline'); return; }
+    const goals = loadGoals();
+    goals.push({ title, deadline, completed: false });
+    saveGoals(goals);
+    renderGoals(goals);
+    titleInput.value = ''; deadlineInput.value = '';
+  });
+
+  renderGoals(loadGoals());
+
+  // ---- POMODORO ----
+  const pomodoroTimer = document.getElementById('pomodoro-timer');
+  const startWorkBtn = document.getElementById('start-pomodoro-btn');
+  const startBreakBtn = document.getElementById('start-break-btn');
+  const resetPomodoroBtn = document.getElementById('reset-pomodoro-btn');
+  const pomodoroCyclesNode = document.getElementById('pomodoro-cycles');
+
+  let timerInterval = null, timeLeft = 25 * 60, isRunning = false, isBreak = false, cycles = 0;
+
+  function updatePomodoroDisplay() {
+    const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const seconds = (timeLeft % 60).toString().padStart(2, '0');
+    pomodoroTimer.textContent = `${minutes}:${seconds}`;
+    pomodoroCyclesNode.textContent = `Completed Cycles: ${cycles}`;
+  }
+
+  function savePomodoro() { save(LS_KEYS.pomodoro, { cycles }); }
+  function loadPomodoro() {
+    const data = load(LS_KEYS.pomodoro);
+    cycles = (data && data.cycles) || 0;
+    updatePomodoroDisplay();
+  }
+
+  function startTimer(duration, breakSession) {
+    clearInterval(timerInterval);
+    timeLeft = duration;
+    isBreak = breakSession;
+    isRunning = true;
+    updatePomodoroDisplay();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updatePomodoroDisplay();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        if (!isBreak) {
+          cycles++;
+          savePomodoro();
+          updatePomodoroDisplay();
+          if (cycles % 4 === 0) { startTimer(15 * 60, true); }
+          else { startTimer(5 * 60, true); }
+        }
+      }
+    }, 1000);
+  }
+
+  startWorkBtn.addEventListener('click', () => { if (!isRunning || isBreak) startTimer(25 * 60, false); });
+  startBreakBtn.addEventListener('click', () => { if (!isRunning || !isBreak) startTimer(5 * 60, true); });
+  resetPomodoroBtn.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    timeLeft = 25 * 60;
+    isRunning = false;
+    isBreak = false;
+    updatePomodoroDisplay();
+  });
+  loadPomodoro();
+
+  // ---- MONEY MGMT ----
+  function getMoneyData() {
+    const d = load(LS_KEYS.money), now = new Date();
+    const ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    if (!d || d.month !== ym) return { month: ym, start: 0, entries: [] };
+    return d;
+  }
+
+  function saveMoneyData(data) { save(LS_KEYS.money, data); }
+
+  function renderMoneyManagement() {
+    const now = new Date(), todayStr = now.toISOString().slice(0, 10), data = getMoneyData();
+    document.getElementById('money-start').value = data.start ? data.start : '';
+    document.getElementById('money-date').value = todayStr;
+    document.getElementById('money-start-info').textContent = data.start ? `Current Start: ${data.start}` : '';
+    let tbody = '', totalSpent = 0;
+    data.entries.forEach(e => {
+      tbody += `<tr><td>${e.date}</td><td style="text-align:right;">${e.spent}</td></tr>`;
+      totalSpent += Number(e.spent || 0);
+    });
+    document.getElementById('money-entries').innerHTML = tbody;
+    document.getElementById('money-total-spent').textContent = totalSpent;
+    document.getElementById('money-total-left').textContent = data.start ? (data.start - totalSpent) : '';
+    document.getElementById('reset-money-month').disabled = !data.start && !data.entries.length;
+  }
+
+  document.getElementById('set-money-start').onclick = function () {
+    let val = parseFloat(document.getElementById('money-start').value || '0');
+    if (isNaN(val) || val <= 0) { alert('Enter a positive number for the start balance.'); return; }
+    let data = getMoneyData();
+    data.start = val; data.entries = [];
+    saveMoneyData(data);
+    renderMoneyManagement();
+  };
+
+  document.getElementById('add-money-entry').onclick = function () {
+    let date = document.getElementById('money-date').value;
+    let s = parseFloat(document.getElementById('money-spent').value || '0');
+    if (!date || isNaN(s) || s < 0) { alert('Enter a valid date and amount spent.'); return; }
+    let data = getMoneyData(), existing = data.entries.find(e => e.date === date);
+    if (existing) { existing.spent += s; }
+    else { data.entries.push({ date, spent: s }); data.entries.sort((a, b) => a.date.localeCompare(b.date)); }
+    saveMoneyData(data);
+    document.getElementById('money-spent').value = '';
+    renderMoneyManagement();
+  };
+
+  document.getElementById('reset-money-month').onclick = function () {
+    if (confirm("Reset this month's records? This cannot be undone.")) {
+      let now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+      saveMoneyData({ month: ym, start: 0, entries: [] });
+      renderMoneyManagement();
+    }
+  };
+
+  document.querySelector('.nav-button[data-section="money-management"]').addEventListener('click', renderMoneyManagement);
+
+  // ---- WORD TRACKER ----
+  const wordForm = document.getElementById('word-form');
+  const wordInput = document.getElementById('word-input');
+  const meaningInput = document.getElementById('meaning-input');
+  const sentenceInput = document.getElementById('sentence-input');
+  const wordsTbody = document.getElementById('words-tbody');
+
+  function loadWords() {
+    return load(LS_KEYS.words) || [];
+  }
+  function saveWords(words) {
+    save(LS_KEYS.words, words);
+  }
+  function renderWords() {
+    const words = loadWords();
+    wordsTbody.innerHTML = '';
+    if (words.length === 0) {
+      wordsTbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#666;">No vocabulary added yet.</td></tr>`;
+      return;
+    }
+    words.forEach((entry, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${entry.word}</td>
+        <td>${entry.meaning}</td>
+        <td>${entry.sentence ? entry.sentence : '-'}</td>
+        <td>
+          <button class="delete-word-btn" data-idx="${idx}" title="Delete Word">✕</button>
+        </td>
+      `;
+      wordsTbody.appendChild(tr);
+    });
+  }
+
+  if (wordForm) {
+    wordForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const word = wordInput.value.trim();
+      const meaning = meaningInput.value.trim();
+      const sentence = sentenceInput.value.trim();
+      if (!word || !meaning) { alert('Please fill both Word and Meaning fields.'); return; }
+      const words = loadWords();
+      words.push({ word, meaning, sentence });
+      saveWords(words);
+      renderWords();
+      wordInput.value = '';
+      meaningInput.value = '';
+      sentenceInput.value = '';
+      wordInput.focus();
+    });
+
+    wordsTbody.addEventListener('click', (e) => {
+      if (e.target.classList.contains('delete-word-btn')) {
+        const idx = Number(e.target.getAttribute('data-idx'));
+        const words = loadWords();
+        if (idx >= 0 && idx < words.length) {
+          words.splice(idx, 1);
+          saveWords(words);
+          renderWords();
+        }
+      }
+    });
+
+    // Initial render
+    renderWords();
+  }
+
+  // ---- RESET ALL DATA ----
+  resetBtn.addEventListener("click", () => {
+    if (confirm("Are you sure you want to reset all your data? This action cannot be undone.")) {
+      Object.values(LS_KEYS).forEach(key => localStorage.removeItem(key));
+      location.reload();
+    }
+  });
+
+  // ---- INITIALIZE ----
+  function initializeApp() {
+    const user = load(LS_KEYS.user);
+    if (user) {
+      inputSection.style.display = "none";
+      dashboard.style.display = "block";
+      startLifeStats(user);
+      activateSection("life-progress", navButtons[0]);
+    } else {
+      inputSection.style.display = "block";
+      dashboard.style.display = "none";
+    }
+  }
+  initializeApp();
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('full-name').value.trim();
+    const dob = document.getElementById('dob').value;
+    const lifeExp = parseInt(document.getElementById('life-expectancy').value, 10);
+    if (!name || !dob || !lifeExp || lifeExp < 50 || lifeExp > 120) {
+      alert('Please fill all fields correctly.');
+      return;
+    }
+    save(LS_KEYS.user, { name, dob, lifeExp });
+    inputSection.style.display = "none";
+    dashboard.style.display = "block";
+    startLifeStats({ name, dob, lifeExp });
+    activateSection("life-progress", navButtons[0]);
+  });
+});
+</script>
+</body>
+</html>
