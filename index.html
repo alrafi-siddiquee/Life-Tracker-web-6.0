@@ -51,7 +51,6 @@ button:hover,.nav-button:hover{background:var(--secondary);}
 .progress-container{background:#ececec;height:11px;border-radius:7px;margin-top:0.25rem;width:100%;}
 .progress-bar{background:var(--accent);height:100%;border-radius:7px;width:0;transition:width 0.6s;}
 .highlight-years{font-size:1.4rem;font-weight:700;color:var(--accent);display:block;margin-bottom:0.3rem;}
-
 /* Sleep Tracker */
 #sleep-tracker .time-tracker-grid{display:flex;flex-wrap:wrap;gap:1rem;}
 #sleep-tracker .time-tracker-grid > div{flex:1 1 200px;}
@@ -141,7 +140,6 @@ button:hover,.nav-button:hover{background:var(--secondary);}
   <p class="subtitle">Mindful Living Through Time Awareness</p>
   <div id="current-time" class="time-showcase" aria-live="polite" aria-atomic="true">Current Time: Loading…</div>
 </header>
-
 <main class="container" role="main" aria-label="Life Tracker Application">
   <!-- User Input Section -->
   <section id="user-input-section" aria-label="User details input">
@@ -317,8 +315,7 @@ button:hover,.nav-button:hover{background:var(--secondary);}
             <th>Activity</th><th>Start</th><th>End</th><th>Duration (min)</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
-        <tbody id="daily-activities-tbody">
-        </tbody>
+        <tbody id="daily-activities-tbody"></tbody>
       </table>
       <p class="highlight" id="daily-routine-info" aria-live="polite" aria-atomic="true"></p>
     </section>
@@ -402,7 +399,7 @@ button:hover,.nav-button:hover{background:var(--secondary);}
       </div>
     </section>
 
-    <!-- Word Tracker Section (New Enhanced) -->
+    <!-- Word Tracker Section -->
     <section id="word-tracker" class="dashboard-section" role="tabpanel" tabindex="0" hidden>
       <h2>Word Tracker</h2>
       <form id="word-form" style="margin-bottom:1rem" aria-label="Add a new word">
@@ -436,11 +433,9 @@ button:hover,.nav-button:hover{background:var(--secondary);}
     </section>
   </section>
 </main>
-
 <footer style="width:100%;text-align:center;background:#fff;padding:20px 0;margin-top:40px;box-shadow:0 -1px 8px rgba(0,0,0,0.05);font-size:12px;">
   <p>Life Tracker</p><p>© 2025 All Rights Reserved</p><p>Planned by Alrafi Siddiquee Jim</p>
 </footer>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   // ---- CORE UTIL/STATE section keys ----
@@ -451,10 +446,9 @@ document.addEventListener("DOMContentLoaded", () => {
     pomodoro: "lt_pomodoro",
     money: "lt_money_management",
     routine: "lt_daily_routine",
-    words: "lt_words" // added for word tracker
+    words: "lt_words"
   };
 
-  // Save/load helpers
   const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
   const load = (key) => {
     const v = localStorage.getItem(key);
@@ -562,7 +556,8 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("seconds-remaining").textContent = `${secondsRem} seconds`;
       document.getElementById("life-percentage").textContent = `${pct}%`;
 
-      const progressBar = document.getElementById("life-progress-bar"), circle = document.getElementById("countdown-circle"),
+      const progressBar = document.getElementById("life-progress-bar"),
+        circle = document.getElementById("countdown-circle"),
         pctText = document.getElementById("countdown-percent");
       progressBar.style.width = `${pct}%`;
       circle.style.background = `conic-gradient(var(--accent) ${pct}%,var(--secondary) ${pct}%)`;
@@ -710,12 +705,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return em - sm;
   }
 
-  function saveDailyRoutine(entries) {
-    save(LS_KEYS.routine, entries);
+  // === THE NEW 12-HOUR FORMAT FUNCTION FOR DISPLAY ===
+  function formatTime12h(timeStr) {
+    if (!timeStr) return '';
+    const [hourStr, minStr] = timeStr.split(':');
+    let hour = parseInt(hourStr, 10);
+    const min = minStr && minStr.padStart(2,'0') || '00';
+    if (isNaN(hour)) return timeStr;
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour === 0) hour = 12;
+    return `${hour}:${min} ${ampm}`;
   }
-  function loadDailyRoutine() {
-    return load(LS_KEYS.routine) || [];
-  }
+
+  function saveDailyRoutine(entries) { save(LS_KEYS.routine, entries); }
+  function loadDailyRoutine() { return load(LS_KEYS.routine) || []; }
   function renderDailyRoutineTable() {
     const routine = loadDailyRoutine();
     routineTableBody.innerHTML = '';
@@ -733,8 +737,8 @@ document.addEventListener("DOMContentLoaded", () => {
       tr.setAttribute('data-idx', idx);
       tr.innerHTML = `
         <td class="activity-name" title="${act.name}">${act.name}</td>
-        <td>${act.start}</td>
-        <td>${act.end}</td>
+        <td>${formatTime12h(act.start)}</td>
+        <td>${formatTime12h(act.end)}</td>
         <td>${duration}</td>
         <td>
           <button class="status-btn ${act.status === 'done' ? 'done' : act.status === 'missed' ? 'missed' : ''}" aria-label="Change Status">${act.status === 'done' ? '✅' : act.status === 'missed' ? '❌' : '-'}</button>
@@ -790,7 +794,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---- LIFE GOALS ----
   const goalsList = document.getElementById('goals-list');
-
   function loadGoals() { return load(LS_KEYS.goals) || []; }
   function saveGoals(goals) { save(LS_KEYS.goals, goals); }
 
@@ -843,10 +846,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderGoals(goals);
     titleInput.value = ''; deadlineInput.value = '';
   });
-
   renderGoals(loadGoals());
 
-  // ---- POMODORO ----
+  // ---- POMODORO TIMER ----
   const pomodoroTimer = document.getElementById('pomodoro-timer');
   const startWorkBtn = document.getElementById('start-pomodoro-btn');
   const startBreakBtn = document.getElementById('start-break-btn');
@@ -854,21 +856,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const pomodoroCyclesNode = document.getElementById('pomodoro-cycles');
 
   let timerInterval = null, timeLeft = 25 * 60, isRunning = false, isBreak = false, cycles = 0;
-
   function updatePomodoroDisplay() {
     const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
     const seconds = (timeLeft % 60).toString().padStart(2, '0');
     pomodoroTimer.textContent = `${minutes}:${seconds}`;
     pomodoroCyclesNode.textContent = `Completed Cycles: ${cycles}`;
   }
-
   function savePomodoro() { save(LS_KEYS.pomodoro, { cycles }); }
   function loadPomodoro() {
     const data = load(LS_KEYS.pomodoro);
     cycles = (data && data.cycles) || 0;
     updatePomodoroDisplay();
   }
-
   function startTimer(duration, breakSession) {
     clearInterval(timerInterval);
     timeLeft = duration;
@@ -891,7 +890,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }, 1000);
   }
-
   startWorkBtn.addEventListener('click', () => { if (!isRunning || isBreak) startTimer(25 * 60, false); });
   startBreakBtn.addEventListener('click', () => { if (!isRunning || !isBreak) startTimer(5 * 60, true); });
   resetPomodoroBtn.addEventListener('click', () => {
@@ -903,16 +901,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   loadPomodoro();
 
-  // ---- MONEY MGMT ----
+  // ---- MONEY MANAGEMENT ----
   function getMoneyData() {
     const d = load(LS_KEYS.money), now = new Date();
     const ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     if (!d || d.month !== ym) return { month: ym, start: 0, entries: [] };
     return d;
   }
-
   function saveMoneyData(data) { save(LS_KEYS.money, data); }
-
   function renderMoneyManagement() {
     const now = new Date(), todayStr = now.toISOString().slice(0, 10), data = getMoneyData();
     document.getElementById('money-start').value = data.start ? data.start : '';
@@ -928,7 +924,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('money-total-left').textContent = data.start ? (data.start - totalSpent) : '';
     document.getElementById('reset-money-month').disabled = !data.start && !data.entries.length;
   }
-
   document.getElementById('set-money-start').onclick = function () {
     let val = parseFloat(document.getElementById('money-start').value || '0');
     if (isNaN(val) || val <= 0) { alert('Enter a positive number for the start balance.'); return; }
@@ -937,7 +932,6 @@ document.addEventListener("DOMContentLoaded", () => {
     saveMoneyData(data);
     renderMoneyManagement();
   };
-
   document.getElementById('add-money-entry').onclick = function () {
     let date = document.getElementById('money-date').value;
     let s = parseFloat(document.getElementById('money-spent').value || '0');
@@ -949,7 +943,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('money-spent').value = '';
     renderMoneyManagement();
   };
-
   document.getElementById('reset-money-month').onclick = function () {
     if (confirm("Reset this month's records? This cannot be undone.")) {
       let now = new Date(), ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -957,7 +950,6 @@ document.addEventListener("DOMContentLoaded", () => {
       renderMoneyManagement();
     }
   };
-
   document.querySelector('.nav-button[data-section="money-management"]').addEventListener('click', renderMoneyManagement);
 
   // ---- WORD TRACKER ----
@@ -966,13 +958,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const meaningInput = document.getElementById('meaning-input');
   const sentenceInput = document.getElementById('sentence-input');
   const wordsTbody = document.getElementById('words-tbody');
-
-  function loadWords() {
-    return load(LS_KEYS.words) || [];
-  }
-  function saveWords(words) {
-    save(LS_KEYS.words, words);
-  }
+  function loadWords() { return load(LS_KEYS.words) || []; }
+  function saveWords(words) { save(LS_KEYS.words, words); }
   function renderWords() {
     const words = loadWords();
     wordsTbody.innerHTML = '';
@@ -993,7 +980,6 @@ document.addEventListener("DOMContentLoaded", () => {
       wordsTbody.appendChild(tr);
     });
   }
-
   if (wordForm) {
     wordForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -1010,7 +996,6 @@ document.addEventListener("DOMContentLoaded", () => {
       sentenceInput.value = '';
       wordInput.focus();
     });
-
     wordsTbody.addEventListener('click', (e) => {
       if (e.target.classList.contains('delete-word-btn')) {
         const idx = Number(e.target.getAttribute('data-idx'));
@@ -1022,8 +1007,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-
-    // Initial render
     renderWords();
   }
 
